@@ -16,7 +16,7 @@
     #     uci set network.lan.dns="192.168.1.1"
     #     uci commit network'
 
-    - name: Setup batman-adv device
+    - name: Setup bat0 interface
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set network.bat0="interface"
@@ -25,7 +25,14 @@
         uci set network.bat0.bridge_loop_avoidance="1"
         uci set network.bat0.gw_mode="server"
         uci set network.bat0.hop_penalty="30"
-        uci set network.bat0.auto="1"
+        uci commit network'
+
+    - name: Setup batmesh interface
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set network.batmesh="interface"
+        uci set network.batmesh.proto="batadv_hardif"
+        uci set network.batmesh.master="bat0"
         uci commit network'
 
     # - name: Bridge LAN to batman-adv and Ethernet
