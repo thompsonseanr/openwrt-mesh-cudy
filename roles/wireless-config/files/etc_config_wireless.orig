@@ -1,0 +1,38 @@
+
+config wifi-device 'radio0'
+        option type 'mac80211'
+        option path 'platform/soc/18000000.wifi'
+        option band '2g'
+        option channel '11'
+        # option hwmode '11g'
+        option htmode 'HT40'
+        option txpower '20'
+        option disabled '0'
+
+config wifi-iface 'mesh2g'
+        option device 'radio0'
+        option network 'lan'
+        option mode 'mesh'
+        option mesh_id 'stayclassy'
+        option encryption 'sae'
+        option key 'rikkitikkitav'
+
+config wifi-device 'radio1'
+        option type 'mac80211'
+        option path 'platform/soc/18000000.wifi+1'
+        option band '5g'
+        option channel '36'
+        # option hwmode '11a'
+        option htmode 'VHT80'
+        option txpower '20'
+        option disabled '0'
+
+config wifi-iface 'mesh5g'
+        option device 'radio1'
+        option network 'lan'
+        option mode 'mesh'
+        option mesh_id 'stayclassy'
+        option encryption 'sae'
+        option key 'rikkitikkitav'
+
+

@@ -1,0 +1,63 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for wireless-config
+- name: Openwrt configurations
+  become: true
+  become_user: root
+  delegate_to: localhost
+  block:
+# Make backup of /etc/config/network
+    - name: Make backup of /etc/config/network
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'cp /etc/config/network /etc/config/network.bak' 
+
+# Make backup of /etc/config/wireless
+    - name: Make backup of /etc/config/wireless
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'cp /etc/config/wireless /etc/config/wireless.bak'
+
+# Convert template
+    - name: Convert network template
+      ansible.builtin.template:
+        src: ./roles/wireless-config/templates/etc_config_network.j2"
+        dest: ./roles/wireless-config/files/etc_config_network
+
+    - name: Convert wireless template
+      ansible.builtin.template:
+        src: ./roles/wireless-config/templates/etc_config_wireless.j2"
+        dest: ./roles/wireless-config/files/etc_config_wireless
+
+# sed /etc/config/network update from file
+    - name: Update /etc/config/network
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'sed -i "/config[[:space:]]device/r ./roles/wireless-config/templates/etc_config_network" /etc/config/network'
+
+    - name: Delete config device line
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'sed -i "/config[[:space:]]device/d" etc/config/network'
+# Copy wireless config
+    - name: Copy wireless config
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' scp -o StrictHostKeyChecking=no -O ./roles/wireless-config/files/etc_config_wireless '{{ openWrtUser }}@{{ inventory_hostname }}':/etc/config/wireless
+
+    # - name: Update wifi ip address
+    #   ansible.builtin.shell: >
+    #     sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'sed -i -E "s/option[[:space:]]ipaddr[[:space:]]'\''[1-9]+.[1-9]+.[1-9]+.[1-9]+'\''/option ipaddr '\''{{ inventory_hostname }}'\''/" /etc/config/network'
+
+    - name: Restart network
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '/etc/init.d/network restart'
+
+    - name: Wifi reload
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'wifi reload'
+
+    - name: Remove etc_config_network
+      ansible.builtin.file:
+        path: ./roles/wireless-config/files/etc_config_network
+        state: absent
+
+    - name: Remove etc_config_wireless
+      ansible.builtin.file:
+        path: ./roles/wireless-config/files/etc_config_wireless
+        state: absent
