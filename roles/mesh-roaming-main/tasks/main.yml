@@ -45,20 +45,23 @@
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set wireless.radio1.band="5g"
-        uci set wireless.radio1.channel="36"
+        uci set wireless.radio1.channel="149"
+        uci set wireless.radio1.hwmode="11a"
         uci set wireless.radio1.htmode="VHT80"
         uci set wireless.radio1.cell_density="0"
         uci set wireless.radio1.disabled="0"
+        uci set wireless.radio1.country="US"
         uci commit wireless'
 
     - name: Configure 2.4GHz radio (radio0)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set wireless.radio0.band="2g"
-        uci set wireless.radio0.channel="1"
+        uci set wireless.radio0.channel="6"
         uci set wireless.radio0.hwmode="11g"
         uci set wireless.radio0.htmode="HT20"
         uci set wireless.radio0.disabled="0"
+        uci set wireless.radio0.country="US"
         uci commit wireless'
 
     - name: Create 5GHz mesh interface on radio1
