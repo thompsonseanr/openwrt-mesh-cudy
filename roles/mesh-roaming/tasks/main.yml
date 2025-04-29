@@ -6,15 +6,15 @@
   become_user: root
   delegate_to: localhost
   block:
-    # - name: Configure LAN IP
-    #   ansible.builtin.shell: |
-    #     sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-    #     uci set network.lan.proto="static"
-    #     uci set network.lan.ipaddr="{{ inventory_hostname }}"
-    #     uci set network.lan.netmask="255.255.255.0"
-    #     uci set network.lan.gateway="192.168.1.1"
-    #     uci set network.lan.dns="192.168.1.1"
-    #     uci commit network'
+    - name: Configure LAN IP
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set network.lan.proto="static"
+        uci set network.lan.ipaddr="{{ inventory_hostname }}"
+        uci set network.lan.netmask="255.255.255.0"
+        uci set network.lan.gateway="192.168.1.1"
+        uci set network.lan.dns="192.168.1.1"
+        uci commit network'
 
     - name: Setup bat0 interface
       ansible.builtin.shell: |
@@ -35,11 +35,11 @@
         uci set network.batmesh.master="bat0"
         uci commit network'
 
-    # - name: Bridge LAN to batman-adv and Ethernet
-    #   ansible.builtin.shell: |
-    #     sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-    #     uci set network.lan.ifname="eth0 bat0"
-    #     uci commit network'
+    - name: bridge eth0 to bat0
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci add_list network.@device[0].ports="bat0"
+        uci commit network'
 
     # - name: Configure 5GHz radio (radio1)
     #   ansible.builtin.shell: |
@@ -69,7 +69,7 @@
     #     uci set wireless.mesh5.encryption="sae"
     #     uci set wireless.mesh5.key="{{ meshApPass }}"
     #     uci set wireless.mesh5.network="bat0"
-    #     uci set wireless.mesh5.mesh_fwding="1"'
+    #     uci set wireless.mesh5.mesh_fwding="0"'
 
     # - name: Create 2.4GHz mesh interface on radio0
     #   ansible.builtin.shell: |
@@ -81,7 +81,7 @@
     #     uci set wireless.mesh2.encryption="sae"
     #     uci set wireless.mesh2.key="{{ meshApPass }}"
     #     uci set wireless.mesh2.network="bat0"
-    #     uci set wireless.mesh2.mesh_fwding="1"'
+    #     uci set wireless.mesh2.mesh_fwding="0"'
 
     # - name: Create 5GHz AP with WPA3 roaming on radio1
     #   ansible.builtin.shell: |
