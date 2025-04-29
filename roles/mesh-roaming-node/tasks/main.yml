@@ -1,0 +1,145 @@
+# SPDX-License-Identifier: MIT-0
+---
+# tasks file for mesh-roaming-node
+- name: Openwrt mesh-roaming configuration
+  become: true
+  become_user: root
+  delegate_to: localhost
+  block:
+    - name: Configure LAN IP
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set network.lan.proto="static"
+        uci set network.lan.ipaddr="{{ inventory_hostname }}"
+        uci set network.lan.netmask="255.255.255.0"
+        uci set network.lan.gateway="192.168.1.1"
+        uci set network.lan.dns="192.168.1.1"
+        uci commit network'
+
+    - name: Setup bat0 interface
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set network.bat0="interface"
+        uci set network.bat0.proto="batadv"
+        uci set network.bat0.routing_algo="BATMAN_V"
+        uci set network.bat0.bridge_loop_avoidance="1"
+        uci set network.bat0.gw_mode="client"
+        uci set network.bat0.hop_penalty="30"
+        uci commit network'
+
+    - name: Setup batmesh interface
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set network.batmesh="interface"
+        uci set network.batmesh.proto="batadv_hardif"
+        uci set network.batmesh.master="bat0"
+        uci commit network'
+
+    - name: bridge eth0 to bat0
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci add_list network.@device[0].ports="bat0"
+        uci commit network'
+
+    - name: Configure 5GHz radio (radio1)
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set wireless.radio1.band="5g"
+        uci set wireless.radio1.channel="149"
+        uci set wireless.radio1.hwmode="11a"
+        uci set wireless.radio1.htmode="VHT80"
+        uci set wireless.radio1.cell_density="0"
+        uci set wireless.radio1.disabled="0"
+        uci set wireless.radio1.country="US"
+        uci commit wireless'
+
+    - name: Configure 2.4GHz radio (radio0)
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set wireless.radio0.band="2g"
+        uci set wireless.radio0.channel="6"
+        uci set wireless.radio0.hwmode="11g"
+        uci set wireless.radio0.htmode="HT20"
+        uci set wireless.radio0.disabled="0"
+        uci set wireless.radio0.country="US"
+        uci commit wireless'
+
+    - name: Create 5GHz mesh interface on radio1
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set wireless.mesh5="wifi-iface"
+        uci set wireless.mesh5.device="radio1"
+        uci set wireless.mesh5.network="batmesh"
+        uci set wireless.mesh5.mode="mesh"
+        uci set wireless.mesh5.encryption="sae"
+        uci set wireless.mesh5.mesh_id="meshparty"
+        uci set wireless.mesh5.mesh_fwding="0"
+        uci set wireless.mesh5.mesh_rssi_threshold="0"
+        uci set wireless.mesh5.key="{{ meshApPass }}"
+        uci commit wireless'
+
+    - name: Create 2.4GHz mesh interface on radio0
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set wireless.mesh2="wifi-iface"
+        uci set wireless.mesh2.device="radio0"
+        uci set wireless.mesh2.network="batmesh"
+        uci set wireless.mesh2.mode="mesh"
+        uci set wireless.mesh2.encryption="sae"
+        uci set wireless.mesh2.mesh_id="meshparty"
+        uci set wireless.mesh2.mesh_fwding="0"
+        uci set wireless.mesh2.mesh_rssi_threshold="0"
+        uci set wireless.mesh2.key="{{ meshApPass }}"
+        uci commit wireless'
+
+    - name: Create 5GHz AP with WPA3 roaming on radio1
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set wireless.ap5="wifi-iface"
+        uci set wireless.ap5.device="radio1"
+        uci set wireless.ap5.mode="ap"
+        uci set wireless.ap5.ssid="stayclassy5g"
+        uci set wireless.ap5.encryption="sae"
+        uci set wireless.ap5.key="{{ meshApPass }}"
+        uci set wireless.ap5.network="lan"
+        uci set wireless.ap5.ieee80211r="1"
+        uci set wireless.ap5.mobility_domain="4f57"
+        uci set wireless.ap5.ft_over_ds="1"
+        uci set wireless.ap5.ft_psk_generate_local="1"
+        uci set wireless.ap5.ieee80211k="1"
+        uci set wireless.ap5.ieee80211v="1"
+        uci set wireless.ap5.bss_transition="1"
+        uci commit wireless'
+
+    - name: Create 2.4GHz AP with WPA3 roaming on radio0
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set wireless.ap2="wifi-iface"
+        uci set wireless.ap2.device="radio0"
+        uci set wireless.ap2.mode="ap"
+        uci set wireless.ap2.ssid="stayclassy"
+        uci set wireless.ap2.encryption="sae"
+        uci set wireless.ap2.key="{{ meshApPass }}"
+        uci set wireless.ap2.network="lan"
+        uci set wireless.ap2.ieee80211r="1"
+        uci set wireless.ap2.mobility_domain="4f57"
+        uci set wireless.ap2.ft_over_ds="1"
+        uci set wireless.ap2.ft_psk_generate_local="1"
+        uci set wireless.ap2.ieee80211k="1"
+        uci set wireless.ap2.ieee80211v="1"
+        uci set wireless.ap2.bss_transition="1"
+        uci commit wireless'
+
+    - name: Commit changes
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci commit network
+        uci commit wireless'
+
+    - name: Restart network
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '/etc/init.d/network restart'
+
+    - name: Reload wifi
+      ansible.builtin.shell: >
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'wifi reload'
