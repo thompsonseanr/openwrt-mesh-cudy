@@ -20,6 +20,8 @@ A super helpful `uci` command to use during configuration of the wireless and ne
 ```
 All primary configuration files are in `/etc/config/`
 
+[The UCI system](https://openwrt.org/docs/guide-user/base-system/uci)
+
 Note:
 
 - In order to flash OpenWrt to the Cudy M3000 v1, follow these instructions: [OpenWrt Software Download](https://www.cudy.com/blogs/faq/openwrt-software-download)
