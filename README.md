@@ -1,4 +1,4 @@
-## OpenWrt Playbook for Cudy M3000 v1 routers.
+## OpenWrt Playbook for Cudy M3000 v1 routers
 
 Use at your own risk; it may break your stuff.
 
