@@ -12,6 +12,13 @@ The opkg packages used are found in the `install-pks` role.
 
 This playbook is really a great starting place for learning how to configure OpenWrt with the uci cli.
 
+A super helpful `uci` command to use during configuration of the wireless and network is:
+
+```
+> uci show wireless
+> uci show network
+```
+All primary configuration files are in `/etc/config/`
 
 Note:
 
