@@ -41,7 +41,7 @@
         uci add_list network.@device[0].ports="bat0"
         uci commit network'
 
-    - name: Configure 5GHz radio (radio1)
+    - name: Configure 5g radio (radio1)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set wireless.radio1.band="5g"
@@ -53,7 +53,7 @@
         uci set wireless.radio1.country="US"
         uci commit wireless'
 
-    - name: Configure 2.4GHz radio (radio0)
+    - name: Configure 2g radio (radio0)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set wireless.radio0.band="2g"
@@ -64,7 +64,7 @@
         uci set wireless.radio0.country="US"
         uci commit wireless'
 
-    - name: Create 5GHz mesh interface on radio1
+    - name: Create 5g mesh interface on radio1
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set wireless.mesh5="wifi-iface"
@@ -78,21 +78,7 @@
         uci set wireless.mesh5.key="{{ meshApPass }}"
         uci commit wireless'
 
-    - name: Create 2.4GHz mesh interface on radio0
-      ansible.builtin.shell: |
-        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set wireless.mesh2="wifi-iface"
-        uci set wireless.mesh2.device="radio0"
-        uci set wireless.mesh2.network="batmesh"
-        uci set wireless.mesh2.mode="mesh"
-        uci set wireless.mesh2.encryption="sae"
-        uci set wireless.mesh2.mesh_id="meshparty"
-        uci set wireless.mesh2.mesh_fwding="0"
-        uci set wireless.mesh2.mesh_rssi_threshold="0"
-        uci set wireless.mesh2.key="{{ meshApPass }}"
-        uci commit wireless'
-
-    - name: Create 5GHz AP with WPA3 roaming on radio1
+    - name: Create 5g AP with WPA3 roaming on radio1
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set wireless.ap5="wifi-iface"
@@ -111,7 +97,7 @@
         uci set wireless.ap5.bss_transition="1"
         uci commit wireless'
 
-    - name: Create 2.4GHz AP with WPA3 roaming on radio0
+    - name: Create 2g AP with WPA3 roaming on radio0
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci set wireless.ap2="wifi-iface"
