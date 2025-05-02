@@ -1,5 +1,6 @@
 .ansible
 .vscode
+
 group_vars/
 
 inventory
