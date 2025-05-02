@@ -9,31 +9,37 @@
     - name: Configure LAN IP
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set network.lan.proto="static"
-        uci set network.lan.ipaddr="{{ inventory_hostname }}"
-        uci set network.lan.netmask="255.255.255.0"
-        uci set network.lan.gateway="192.168.1.1"
-        uci set network.lan.dns="192.168.1.1"
-        uci commit network'
+        uci batch <<EOF
+        set network.lan.proto="static"
+        set network.lan.ipaddr="{{ inventory_hostname }}"
+        set network.lan.netmask="255.255.255.0"
+        set network.lan.gateway="192.168.1.1"
+        set network.lan.dns="192.168.1.1"
+        commit network
+        EOF'
 
     - name: Setup bat0 interface
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set network.bat0="interface"
-        uci set network.bat0.proto="batadv"
-        uci set network.bat0.routing_algo="BATMAN_V"
-        uci set network.bat0.bridge_loop_avoidance="1"
-        uci set network.bat0.gw_mode="client"
-        uci set network.bat0.hop_penalty="30"
-        uci commit network'
+        uci batch <<EOF
+        set network.bat0="interface"
+        set network.bat0.proto="batadv"
+        set network.bat0.routing_algo="BATMAN_V"
+        set network.bat0.bridge_loop_avoidance="1"
+        set network.bat0.gw_mode="client"
+        set network.bat0.hop_penalty="30"
+        commit network
+        EOF'
 
     - name: Setup batmesh interface
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set network.batmesh="interface"
-        uci set network.batmesh.proto="batadv_hardif"
-        uci set network.batmesh.master="bat0"
-        uci commit network'
+        uci batch <<EOF
+        set network.batmesh="interface"
+        set network.batmesh.proto="batadv_hardif"
+        set network.batmesh.master="bat0"
+        commit network
+        EOF'
 
     - name: bridge eth0 to bat0
       ansible.builtin.shell: |
@@ -44,77 +50,87 @@
     - name: Configure 5g radio (radio1)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set wireless.radio1.band="5g"
-        uci set wireless.radio1.channel="149"
-        uci set wireless.radio1.hwmode="11a"
-        uci set wireless.radio1.htmode="VHT80"
-        uci set wireless.radio1.cell_density="0"
-        uci set wireless.radio1.disabled="0"
-        uci set wireless.radio1.country="US"
-        uci commit wireless'
+        uci batch <<EOF
+        set wireless.radio1.band="5g"
+        set wireless.radio1.channel="149"
+        set wireless.radio1.hwmode="11a"
+        set wireless.radio1.htmode="VHT80"
+        set wireless.radio1.cell_density="0"
+        set wireless.radio1.disabled="0"
+        set wireless.radio1.country="US"
+        commit wireless
+        EOF'
 
     - name: Configure 2g radio (radio0)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set wireless.radio0.band="2g"
-        uci set wireless.radio0.channel="6"
-        uci set wireless.radio0.hwmode="11g"
-        uci set wireless.radio0.htmode="HT20"
-        uci set wireless.radio0.disabled="0"
-        uci set wireless.radio0.country="US"
-        uci commit wireless'
+        uci batch <<EOF
+        set wireless.radio0.band="2g"
+        set wireless.radio0.channel="6"
+        set wireless.radio0.hwmode="11g"
+        set wireless.radio0.htmode="HT20"
+        set wireless.radio0.disabled="0"
+        set wireless.radio0.country="US"
+        commit wireless
+        EOF'
 
     - name: Create 5g mesh interface on radio1
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set wireless.mesh5="wifi-iface"
-        uci set wireless.mesh5.device="radio1"
-        uci set wireless.mesh5.network="batmesh"
-        uci set wireless.mesh5.mode="mesh"
-        uci set wireless.mesh5.encryption="sae"
-        uci set wireless.mesh5.mesh_id="meshparty"
-        uci set wireless.mesh5.mesh_fwding="0"
-        uci set wireless.mesh5.mesh_rssi_threshold="0"
-        uci set wireless.mesh5.key="{{ meshApPass }}"
-        uci commit wireless'
+        uci batch <<EOF
+        set wireless.mesh5="wifi-iface"
+        set wireless.mesh5.device="radio1"
+        set wireless.mesh5.network="batmesh"
+        set wireless.mesh5.mode="mesh"
+        set wireless.mesh5.encryption="sae"
+        set wireless.mesh5.mesh_id="meshparty"
+        set wireless.mesh5.mesh_fwding="0"
+        set wireless.mesh5.mesh_rssi_threshold="0"
+        set wireless.mesh5.key="{{ meshApPass }}"
+        commit wireless
+        EOF'
 
     - name: Create 5g AP with WPA3 roaming on radio1
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set wireless.ap5="wifi-iface"
-        uci set wireless.ap5.device="radio1"
-        uci set wireless.ap5.mode="ap"
-        uci set wireless.ap5.ssid="stayclassy5g"
-        uci set wireless.ap5.encryption="sae"
-        uci set wireless.ap5.key="{{ meshApPass }}"
-        uci set wireless.ap5.network="lan"
-        uci set wireless.ap5.ieee80211r="1"
-        uci set wireless.ap5.mobility_domain="4f57"
-        uci set wireless.ap5.ft_over_ds="1"
-        uci set wireless.ap5.ft_psk_generate_local="1"
-        uci set wireless.ap5.ieee80211k="1"
-        uci set wireless.ap5.ieee80211v="1"
-        uci set wireless.ap5.bss_transition="1"
-        uci commit wireless'
+        uci batch <<EOF
+        set wireless.ap5="wifi-iface"
+        set wireless.ap5.device="radio1"
+        set wireless.ap5.mode="ap"
+        set wireless.ap5.ssid="stayclassy5g"
+        set wireless.ap5.encryption="sae"
+        set wireless.ap5.key="{{ meshApPass }}"
+        set wireless.ap5.network="lan"
+        set wireless.ap5.ieee80211r="1"
+        set wireless.ap5.mobility_domain="4f57"
+        set wireless.ap5.ft_over_ds="1"
+        set wireless.ap5.ft_psk_generate_local="1"
+        set wireless.ap5.ieee80211k="1"
+        set wireless.ap5.ieee80211v="1"
+        set wireless.ap5.bss_transition="1"
+        commit wireless
+        EOF'
 
     - name: Create 2g AP with WPA3 roaming on radio0
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
-        uci set wireless.ap2="wifi-iface"
-        uci set wireless.ap2.device="radio0"
-        uci set wireless.ap2.mode="ap"
-        uci set wireless.ap2.ssid="stayclassy"
-        uci set wireless.ap2.encryption="sae"
-        uci set wireless.ap2.key="{{ meshApPass }}"
-        uci set wireless.ap2.network="lan"
-        uci set wireless.ap2.ieee80211r="1"
-        uci set wireless.ap2.mobility_domain="4f57"
-        uci set wireless.ap2.ft_over_ds="1"
-        uci set wireless.ap2.ft_psk_generate_local="1"
-        uci set wireless.ap2.ieee80211k="1"
-        uci set wireless.ap2.ieee80211v="1"
-        uci set wireless.ap2.bss_transition="1"
-        uci commit wireless'
+        uci batch <<EOF
+        set wireless.ap2="wifi-iface"
+        set wireless.ap2.device="radio0"
+        set wireless.ap2.mode="ap"
+        set wireless.ap2.ssid="stayclassy"
+        set wireless.ap2.encryption="sae"
+        set wireless.ap2.key="{{ meshApPass }}"
+        set wireless.ap2.network="lan"
+        set wireless.ap2.ieee80211r="1"
+        set wireless.ap2.mobility_domain="4f57"
+        set wireless.ap2.ft_over_ds="1"
+        set wireless.ap2.ft_psk_generate_local="1"
+        set wireless.ap2.ieee80211k="1"
+        set wireless.ap2.ieee80211v="1"
+        set wireless.ap2.bss_transition="1"
+        commit wireless
+        EOF'
 
     - name: Commit changes
       ansible.builtin.shell: |
