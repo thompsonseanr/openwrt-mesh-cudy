@@ -24,11 +24,13 @@ All primary configuration files are in `/etc/config/`
 
 [The UCI system](https://openwrt.org/docs/guide-user/base-system/uci)
 
-Note:
+**Note:**
 
 - In order to flash OpenWrt to the Cudy M3000 v1, follow these instructions: [OpenWrt Software Download](https://www.cudy.com/blogs/faq/openwrt-software-download)
 
-- If you need to restore your router back to the Cudy official firmware, you will need to set up an tftp server and follow these instructions (make note to set your computer's/server's IP to, otherwise the router will not instantiate the call to the tftp server: **192.168.1.88**): [How to Recovery the Cudy Router From OpenWRT Firmware to Cudy Official Firmware? ](https://www.cudy.com/blogs/faq/how-to-recovery-the-cudy-router-from-openwrt-firmware-to-cudy-official-firmware)
+- **UPDATE** The easiest way I found to flash every mesh node is to do it individually, following the steps one would take for flashing a recovery image [How to Recovery the Cudy Router From OpenWRT Firmware to Cudy Official Firmware? ](https://www.cudy.com/blogs/faq/how-to-recovery-the-cudy-router-from-openwrt-firmware-to-cudy-official-firmware). I simply pulled the image from the cudy clear signature google drive share (listed by device name), rename the image to `recovery.bin` (make it executable), and change the IP on the computer to **192.168.1.88**. make sure to hold down the **reset** button before starting up the router and hardwire into the router's ethernet port. I ran tcpdump to make sure the image was completely copied over and watched the led turn solid. When it came back up, I logged into the default 192.168.1.1 LuCI interface and then flashed the new latest OpenWRT firmware with included packages.
+
+- If you need to restore your router back to the Cudy official firmware, download the latest firmware for your router, set up an tftp server and follow these instructions (make note to set your computer's/server's IP to, otherwise the router will not instantiate the call to the tftp server: **192.168.1.88**): [How to Recovery the Cudy Router From OpenWRT Firmware to Cudy Official Firmware? ](https://www.cudy.com/blogs/faq/how-to-recovery-the-cudy-router-from-openwrt-firmware-to-cudy-official-firmware)
 
 
 
