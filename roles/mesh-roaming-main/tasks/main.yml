@@ -6,15 +6,13 @@
   become_user: root
   delegate_to: localhost
   block:
-    - name: Configure LAN IP
+    - name: Configure LAN
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci batch <<EOF
         set network.lan.proto="static"
         set network.lan.ipaddr="{{ inventory_hostname }}"
         set network.lan.netmask="255.255.255.0"
-        set network.lan.gateway="192.168.1.1"
-        set network.lan.dns="192.168.1.1"
         commit network
         EOF'
 
@@ -56,6 +54,31 @@
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci add_list network.@device[0].ports="bat0"
         uci commit network'
+
+    - name: Create br-default bridge
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci batch <<EOF
+        add network device
+        set network.@device[1].name="br-default"
+        set network.@device[1].type="bridge"
+        add_list network.@device[1].ports="bat0"
+        commit network
+        EOF'
+
+    - name: Create default interface
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci batch <<EOF
+        set network.default="interface"
+        set network.default.device="br-default"
+        set network.default.proto="static"
+        set network.default.ipaddr="192.168.10.1"
+        set network.default.netmask="255.255.255.0"
+        add_list network.default.dns="1.1.1.1"
+        add_list network.default.dns="8.8.8.8"
+        commit network
+        EOF'
 
     - name: Configure 5g radio (radio1)
       ansible.builtin.shell: |
