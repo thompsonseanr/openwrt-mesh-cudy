@@ -94,6 +94,12 @@
         commit wireless
         EOF'
 
+    - name: Delete default Openwrt 5g ap
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci -q delete wireless.default_radio1
+        uci commit wireless'
+
     - name: Configure 2g radio (radio0)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
@@ -106,6 +112,12 @@
         set wireless.radio0.country="US"
         commit wireless
         EOF'
+
+    - name: Delete default Openwrt 2g ap
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci -q delete wireless.default_radio0
+        uci commit wireless'
 
     - name: Create 5g mesh interface on radio1
       ansible.builtin.shell: |
