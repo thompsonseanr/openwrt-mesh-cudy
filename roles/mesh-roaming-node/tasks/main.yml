@@ -6,15 +6,13 @@
   become_user: root
   delegate_to: localhost
   block:
-    - name: Configure LAN IP
+    - name: Configure LAN
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci batch <<EOF
         set network.lan.proto="static"
         set network.lan.ipaddr="{{ inventory_hostname }}"
         set network.lan.netmask="255.255.255.0"
-        set network.lan.gateway="192.168.1.1"
-        set network.lan.dns="192.168.1.1"
         commit network
         EOF'
 
@@ -57,6 +55,31 @@
         uci add_list network.@device[0].ports="bat0"
         uci commit network'
 
+    - name: Create br-default birdge
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci batch <<EOF
+        add network device
+        set network.@device[1].name="br-default"
+        set network.@device[1].type="bridge"
+        add_list network.@device[1].ports="bat0"
+        commit network
+        EOF'
+
+    - name: Create default interface
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci batch <<EOF
+        set network.default="interface"
+        set network.default.device="br-default"
+        set network.default.proto="static"
+        set network.default.ipaddr="192.168.10.2"
+        set network.default.netmask="255.255.255.0"
+        add_list network.default.dns="1.1.1.1"
+        add_list network.default.dns="8.8.8.8"
+        commit network
+        EOF'
+
     - name: Configure 5g radio (radio1)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
@@ -71,6 +94,12 @@
         commit wireless
         EOF'
 
+    - name: Delete default Openwrt 5g ap
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci -q delete wireless.default_radio1
+        uci commit wireless'
+
     - name: Configure 2g radio (radio0)
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
@@ -84,6 +113,12 @@
         commit wireless
         EOF'
 
+    - name: Delete default Openwrt 2g ap
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci -q delete wireless.default_radio0
+        uci commit wireless'
+
     - name: Create 5g mesh interface on radio1
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
@@ -92,7 +127,7 @@
         set wireless.mesh5.device="radio1"
         set wireless.mesh5.network="batmesh"
         set wireless.mesh5.mode="mesh"
-        set wireless.mesh5.encryption="sae"
+        set wireless.mesh5.encryption="sae-mixed"
         set wireless.mesh5.mesh_id="{{ meshId }}"
         set wireless.mesh5.mesh_fwding="0"
         set wireless.mesh5.mesh_rssi_threshold="0"
@@ -108,7 +143,7 @@
         set wireless.ap5.device="radio1"
         set wireless.ap5.mode="ap"
         set wireless.ap5.ssid="{{ ap5ssid }}"
-        set wireless.ap5.encryption="sae"
+        set wireless.ap5.encryption="sae-mixed"
         set wireless.ap5.key="{{ meshApPass }}"
         set wireless.ap5.network="lan"
         set wireless.ap5.ieee80211r="1"
@@ -129,7 +164,7 @@
         set wireless.ap2.device="radio0"
         set wireless.ap2.mode="ap"
         set wireless.ap2.ssid="{{ ap2ssid }}"
-        set wireless.ap2.encryption="sae"
+        set wireless.ap2.encryption="sae-mixed"
         set wireless.ap2.key="{{ meshApPass }}"
         set wireless.ap2.network="lan"
         set wireless.ap2.ieee80211r="1"
@@ -142,6 +177,17 @@
         commit wireless
         EOF'
 
+    - name: Disable dhcp
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set dhcp.lan.ignore=1
+        uci commit'
+
+    - name: Disable dnsmasq
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        /etc/init.d/dnsmasq disable'
+
     - name: Commit changes
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
@@ -150,8 +196,10 @@
 
     - name: Restart network
       ansible.builtin.shell: >
-        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '/etc/init.d/network restart'
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        /etc/init.d/network restart'
 
     - name: Reload wifi
       ansible.builtin.shell: >
-        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'wifi reload'
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        wifi reload'
