@@ -142,6 +142,17 @@
         commit wireless
         EOF'
 
+    - name: Disable dhcp
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        uci set dhcp.lan.ignore=1
+        uci commit'
+
+    - name: Disable dnsmasq
+      ansible.builtin.shell: |
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        /etc/init.d/dnsmasq disable'
+
     - name: Commit changes
       ansible.builtin.shell: |
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
@@ -150,8 +161,10 @@
 
     - name: Restart network
       ansible.builtin.shell: >
-        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '/etc/init.d/network restart'
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        /etc/init.d/network restart'
 
     - name: Reload wifi
       ansible.builtin.shell: >
-        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' 'wifi reload'
+        sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
+        wifi reload'
