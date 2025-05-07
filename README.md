@@ -2,23 +2,23 @@
 
 **WIP** Use at your own risk; it may break your stuff.
 
-Work based upon this great tutorial:  [OpenWRT Batman Mesh Tutorial](https://github.com/benkay86/openwrt-batman-tutorial)
-
-Future work will leverage information learned from the awesome FREEMESH project: [FREEMESH Firmware](https://gitlab.com/slthomason/freemesh)
-
 *Unfortunately, this is still a work in progress and I have not been successful with the mesh nodes yet. I am seeing great progress with incorporating what I have learned from the FREEMESH firmware, but mesh backhaul is still elusive. I suspect dhcp and the firewall are next to tackle.*
 
-This was done using the latest OpenWrt firmware using the [OpenWrt firmware selector tool](https://firmware-selector.openwrt.org/)
+Work based upon this great tutorial:  [OpenWRT Batman Mesh Tutorial](https://github.com/benkay86/openwrt-batman-tutorial) and information learned from the awesome FREEMESH project: [FREEMESH Firmware](https://gitlab.com/slthomason/freemesh)
 
-The opkg packages used are found in the `install-pkgs` role.
+This was done using the latest OpenWrt firmware for the Cudy M3000 v1 from the [OpenWrt firmware selector tool](https://firmware-selector.openwrt.org/)
+
+The opkg packages used are found in the `install-pkgs` role: `kmod-batman-adv batctl-default iw wpad-mbedtls luci-proto-batman-adv`
 
 This playbook is really a great starting place for learning how to configure OpenWrt with the uci cli.
 
-A super helpful `uci` command to use during configuration of the wireless and network is:
+A super helpful `uci` commands to use during configuration are:
 
 ```
 > uci show wireless
 > uci show network
+> uci show dhcp
+> uci show firewall
 ```
 All primary configuration files are in `/etc/config/`
 
