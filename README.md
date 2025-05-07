@@ -6,7 +6,7 @@ Work based upon this great tutorial:  [OpenWRT Batman Mesh Tutorial](https://git
 
 Future work will leverage information learned from the awesome FREEMESH project: [FREEMESH Firmware](https://gitlab.com/slthomason/freemesh)
 
-*Unfortunately, this is still a work in progress and I have not been successful with the mesh nodes yet.*
+*Unfortunately, this is still a work in progress and I have not been successful with the mesh nodes yet. I am seeing great progress with incorporating what I have learned from the FREEMESH firmware, but mesh backhaul is still elusive. I suspect dhcp and the firewall are next to tackle.*
 
 This was done using the latest OpenWrt firmware using the [OpenWrt firmware selector tool](https://firmware-selector.openwrt.org/)
 
