@@ -44,6 +44,7 @@
         sshpass -p '{{ openWrtPass }}' ssh -o StrictHostKeyChecking=no '{{ openWrtUser }}@{{ inventory_hostname }}' '
         uci batch <<EOF
         set network.batmesh="interface"
+        set network.batmesh.mtu="2304"
         set network.batmesh.proto="batadv_hardif"
         set network.batmesh.master="bat0"
         commit network
